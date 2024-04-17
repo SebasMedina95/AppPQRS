@@ -1,0 +1,8 @@
+.env
+
+containers/
+
+node_modules/
+coverage/
+build/
+dist/
