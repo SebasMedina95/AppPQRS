@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { UserRoutes } from "./routes/user.routes";
 
 export class AppRoutes {
 
@@ -6,11 +7,8 @@ export class AppRoutes {
 
     const router = Router();
 
-    // Definir las rutas
-    // router.use('/api/rutas1', /*SistemaRutas1.routes */ );
-    // router.use('/api/rutas2', /*SistemaRutas2.routes */ );
-    // router.use('/api/rutas3', /*SistemaRutas3.routes */ );
-    // router.use('/api/rutas4', /*SistemaRutas4.routes */ );
+    /** Definición de rutas */
+    router.use('/api/users', UserRoutes.routes );
 
     return router;
 
