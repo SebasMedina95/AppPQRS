@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { envs } from '../../config/envs';
 import { UserService } from '../services/users.service';
 import { UserController } from '../controllers/users.controller';
+import { EmailService } from '../services/email.service';
 
 
 export class UserRoutes {
@@ -9,14 +10,14 @@ export class UserRoutes {
     static get routes(): Router {
 
         const router = Router();
-        // const emailService = new EmailService(
-        //     envs.MAILER_SERVICE,
-        //     envs.MAILER_EMAIL,
-        //     envs.MAILER_SECRET_KEY,
-        //     envs.SEND_EMAIL
-        // );
+        const emailService = new EmailService(
+            envs.MAILER_SERVICE,
+            envs.MAILER_EMAIL,
+            envs.MAILER_SECRET_KEY,
+            envs.SEND_EMAIL,
+        );
 
-        const userService = new UserService( /*emailService*/ );
+        const userService = new UserService( emailService );
         const userController = new UserController( userService );
 
         router.post('/register', userController.registerUser );

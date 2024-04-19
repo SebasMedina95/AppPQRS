@@ -28,8 +28,13 @@ export class UserController {
 
         this.userService.registerUser( registerDto! )
             .then( (user) => {
-                if( user instanceof CustomError ) return handleError("Ocurrió un error al intentar registrar un usuario", res);
-                return res.status(201).json(new ApiResponse(user, EResponseCodes.OK, "Usuario Registrado"))
+                if( user instanceof CustomError ){
+                    return res.status(user.statusCode).json(
+                        new ApiResponse({error: user.message}, EResponseCodes.FAIL, "Ocurrió un error al intentar registrar un usuario"))
+                }
+
+                return res.status(201).json(new ApiResponse(user, EResponseCodes.OK, "Usuario Registrado"));
+
             }).catch( (error) => {
                 return handleError( error, res )
             })
@@ -52,8 +57,20 @@ export class UserController {
         res.json("Hola desde list");
     }
 
-    validateEmailUser = async( req: Request, res: Response ) => {
-        res.json("Hola desde validateEmailUser");
+    validateEmailUser = async( req: Request, res: Response ): Promise<ApiResponse<boolean> | any> => {
+        
+        const { token } = req.params; 
+
+        this.userService.validateEmailUser( token )
+            .then( ( valid ) => {
+                return res.status(200).json(
+                    new ApiResponse(valid, EResponseCodes.OK, "Validación de email exitosa"))
+            })
+            .catch( (error) => {
+                return res.status(400).json(
+                    new ApiResponse(error, EResponseCodes.FAIL, "Ocurrió un error al intentar verificar el email"))
+            })
+        
     }
 
 }
