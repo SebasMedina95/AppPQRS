@@ -1,10 +1,13 @@
 import { BcryptAdapter } from "../../config/bcryptjs.adapter";
 import { JwtAdapter } from "../../config/jwt.adapter";
+import { MomentAdapter } from "../../config/moment-timezone.adapter";
 import { prisma } from "../../db/postgres";
+import { PaginationDto } from "../../domain/common/pagination.dto";
 import { RegisterUserDto } from "../../domain/dtos/users/register-user.dto"
 import { UserEntity } from "../../domain/entities/user.entity";
 import { CustomError } from "../../domain/errors/custom.error"
-import { IUser } from "../../interfaces/users.interface"
+import { ExecuteMetadataPagination } from "../../domain/utils/pagination.response";
+import { IUser, IUserPaginated } from "../../interfaces/users.interface"
 import { EmailService } from "./email.service";
 
 export class UserService {
@@ -31,6 +34,7 @@ export class UserService {
         try{
 
             const bcrypt = new BcryptAdapter();
+            const myMoment = new MomentAdapter();
 
             const newUser = await prisma.uSER_USERS.create({
                 data: {
@@ -43,6 +47,7 @@ export class UserService {
                     phone: registerUserDto.phone,
                     cellPhone: registerUserDto.cellPhone,
                     description: registerUserDto.description,
+                    createDateAt: myMoment.getDateColombian(),
                 }
             })
 
@@ -68,6 +73,7 @@ export class UserService {
                 phone: userEntity.phone,
                 cellPhone: userEntity.cellPhone,
                 description: userEntity.description,
+                createDateAt: userEntity.createDateAt,
                 token,
             }
 
@@ -95,7 +101,108 @@ export class UserService {
 
     }
 
-    list = async() => {
+    list = async( paginationDto: PaginationDto ): Promise<IUserPaginated | CustomError> => {
+
+        const { page, limit, search } = paginationDto;
+        let getUsers: IUser[] = [];
+        let getUsersCore: IUser[] = [];
+        let countData: number;
+
+        try {
+
+            if( search && search !== "" && search !== null && search !== undefined  ){
+
+                const searchFilter: string = search.trim();
+
+                getUsers = await prisma.uSER_USERS.findMany({
+                    take: limit,
+                    skip: Number(page - 1) * limit,
+                    where: {
+                        OR: [
+                            { fullName: { contains: searchFilter, mode: 'insensitive' } },
+                            { document: { contains: searchFilter, mode: 'insensitive' } },
+                            { email: { contains: searchFilter, mode: 'insensitive' } },
+                            { address: { contains: searchFilter, mode: 'insensitive' } },
+                            { phone: { contains: searchFilter, mode: 'insensitive' } },
+                            { cellPhone: { contains: searchFilter, mode: 'insensitive' } },
+                            { description: { contains: searchFilter, mode: 'insensitive' } },
+                        ]
+                    },
+                    select: {
+                        id: true,
+                        typeDocument: true,
+                        document: true,
+                        fullName: true,
+                        email: true,
+                        emailValidated: true,
+                        role: true,
+                        status: true,
+                        img: true,
+                        address: true,
+                        phone: true,
+                        cellPhone: true,
+                        description: true,
+                    }
+                });
+
+                getUsersCore = getUsers as IUser[]
+                countData = await prisma.uSER_USERS.count({
+                    where: {
+                        OR: [
+                            { fullName: { contains: searchFilter, mode: 'insensitive' } },
+                            { document: { contains: searchFilter, mode: 'insensitive' } },
+                            { email: { contains: searchFilter, mode: 'insensitive' } },
+                            { address: { contains: searchFilter, mode: 'insensitive' } },
+                            { phone: { contains: searchFilter, mode: 'insensitive' } },
+                            { cellPhone: { contains: searchFilter, mode: 'insensitive' } },
+                            { description: { contains: searchFilter, mode: 'insensitive' } },
+                        ]
+                    }
+                });
+
+            }else{
+
+                getUsers = await prisma.uSER_USERS.findMany({
+                    take: limit,
+                    skip: Number(page - 1) * limit,
+                    select: {
+                        id: true,
+                        typeDocument: true,
+                        document: true,
+                        fullName: true,
+                        email: true,
+                        emailValidated: true,
+                        role: true,
+                        status: true,
+                        img: true,
+                        address: true,
+                        phone: true,
+                        cellPhone: true,
+                        description: true,
+                    }
+                });
+
+                getUsersCore = getUsers as IUser[]
+                countData = await prisma.uSER_USERS.count();
+
+            }
+
+            const metadata = ExecuteMetadataPagination( countData, page, limit );
+
+            return {
+                users: getUsersCore,
+                metadata
+            }
+            
+        } catch (error) {
+
+            throw CustomError.internalServerError("Error Interno del Servidor");
+
+        } finally {
+
+            await prisma.$disconnect();
+            
+        } 
 
     }
 

@@ -14,6 +14,7 @@ export class UserEntity {
         public readonly phone?: string,
         public readonly cellPhone?: string,
         public readonly description?: string,
+        public readonly createDateAt?: Date,
     ){}
 
     static fromObject( object: { [key : string]: any } ){
@@ -31,6 +32,7 @@ export class UserEntity {
             phone,
             cellPhone,
             description,
+            createDateAt,
         } = object;
 
         return new UserEntity( 
@@ -46,6 +48,7 @@ export class UserEntity {
             phone,
             cellPhone,
             description,
+            createDateAt,
          )
 
     }

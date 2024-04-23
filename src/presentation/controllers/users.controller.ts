@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import { UserService } from "../services/users.service"
-import { IUser } from '../../interfaces/users.interface';
+import { IUser, IUserPaginated } from '../../interfaces/users.interface';
 import { EResponseCodes } from '../../constants/api-codes';
 
 import { ApiResponse } from '../../domain/utils/api-response';
 import { RegisterUserDto } from '../../domain/dtos/users/register-user.dto';
 import { CustomError } from '../../domain/errors/custom.error';
 import { handleError } from '../../domain/errors/handler.error';
+import { PaginationDto } from '../../domain/common/pagination.dto';
 
 
 export class UserController {
@@ -53,8 +54,30 @@ export class UserController {
         res.json("Hola desde searchById");
     }
 
-    list = async( req: Request, res: Response ) => {
-        res.json("Hola desde list");
+    list = async( req: Request, res: Response ): Promise<ApiResponse<IUserPaginated> | undefined> => {
+        
+        const { page , limit , search = "" } = req.body;
+        const [error, paginationDto] = PaginationDto.pagination( Number(page), Number(limit), search.toString() ); 
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar paginar los usuarios")
+            )
+            return;
+        }
+
+        this.userService.list( paginationDto! )
+            .then( (userResp) => {
+
+                if( userResp instanceof CustomError ) return handleError(userResp.message, res)
+                return res.status(200).json(
+                    new ApiResponse(userResp, EResponseCodes.OK, "Obteniendo usuarios"))
+
+            })
+            .catch( error => handleError(error, res))
+
+        return;
+
     }
 
     validateEmailUser = async( req: Request, res: Response ): Promise<ApiResponse<boolean> | any> => {

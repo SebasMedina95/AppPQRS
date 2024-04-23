@@ -13,6 +13,7 @@ export class RegisterUserDto {
         public readonly phone?: string,
         public readonly cellPhone?: string,
         public readonly description?: string,
+        public readonly createDateAt?: Date,
     ){}
 
     static registerUser( object: { [key:string]: any } ): [string?, RegisterUserDto?] {
@@ -28,6 +29,7 @@ export class RegisterUserDto {
             phone,
             cellPhone,
             description,
+            createDateAt,
         } = object;
 
         //Nombre
@@ -60,6 +62,7 @@ export class RegisterUserDto {
             phone,
             cellPhone,
             description,
+            createDateAt,
         )];
 
     }

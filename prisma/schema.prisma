@@ -28,4 +28,5 @@ model USER_USERS {
   phone          String?
   cellPhone      String?
   description    String?
+  createDateAt   DateTime?
 }

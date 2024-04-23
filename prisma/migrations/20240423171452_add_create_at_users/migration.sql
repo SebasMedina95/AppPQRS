@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "USER_USERS" ADD COLUMN     "createDateAt" TIMESTAMP(3);
