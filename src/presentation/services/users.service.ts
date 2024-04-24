@@ -1,12 +1,17 @@
 import { BcryptAdapter } from "../../config/bcryptjs.adapter";
 import { JwtAdapter } from "../../config/jwt.adapter";
 import { MomentAdapter } from "../../config/moment-timezone.adapter";
+
 import { prisma } from "../../db/postgres";
+
 import { PaginationDto } from "../../domain/common/pagination.dto";
 import { RegisterUserDto } from "../../domain/dtos/users/register-user.dto"
+import { SearchUserDto } from "../../domain/dtos/users/search-user.dto";
 import { UserEntity } from "../../domain/entities/user.entity";
 import { CustomError } from "../../domain/errors/custom.error"
 import { ExecuteMetadataPagination } from "../../domain/utils/pagination.response";
+import { UpdateUserDto } from '../../domain/dtos/users/update-user.dto';
+
 import { IUser, IUserPaginated } from "../../interfaces/users.interface"
 import { EmailService } from "./email.service";
 
@@ -16,6 +21,9 @@ export class UserService {
         private readonly emailService: EmailService,
     ){}
 
+    //* ************************************************************ *//
+    //* **************** REGISTRAR UN NUEVO USUARIO **************** *//
+    //* ************************************************************ *//
     registerUser = async( registerUserDto: RegisterUserDto ): Promise<IUser | CustomError> => {
 
         const emailValid: string = registerUserDto.email;
@@ -89,18 +97,152 @@ export class UserService {
 
     }
 
-    updateUser = async() => {
+    //* *************************************************************** *//
+    //* **************** ACTUALIZAR USUARIO REGISTRADO **************** *//
+    //* *************************************************************** *//
+    updateUser = async( updateUserDto: UpdateUserDto ): Promise<IUser | CustomError | null> => {
+
+        const idValid: number = updateUserDto.id;
+        const documentValid: string = updateUserDto.document;
+
+        const existUser = await prisma.uSER_USERS.findFirst({
+            where: { document: documentValid }
+        });
+
+        if( existUser != null ) {
+            if( existUser.id != idValid ){
+                return CustomError.badRequestError("Ya existe el email o el documento");
+            }
+        }
+
+        const existUserId = await prisma.uSER_USERS.findFirst({
+            where: { id: Number(idValid) }
+        });
+
+        if( existUserId == null ) return null;
+
+        try {
+
+            const updateUser = await prisma.uSER_USERS.update({
+                where: { id: Number(updateUserDto.id) },
+                data: {
+                    typeDocument: updateUserDto.typeDocument,
+                    document: updateUserDto.document,
+                    fullName: updateUserDto.fullName,
+                    address: updateUserDto.address,
+                    phone: updateUserDto.phone,
+                    cellPhone: updateUserDto.cellPhone,
+                    description: updateUserDto.description,
+                }
+            });
+
+            const { password, ...userEntity } = UserEntity.fromObject(updateUser);
+
+            return {
+                id: userEntity.id,
+                typeDocument: userEntity.typeDocument,
+                document: userEntity.document,
+                fullName: userEntity.fullName,
+                email: userEntity.email,
+                emailValidated: userEntity.emailValidated,
+                img: userEntity.img,
+                address: userEntity.address,
+                phone: userEntity.phone,
+                cellPhone: userEntity.cellPhone,
+                description: userEntity.description,
+            }
+            
+        } catch( error ){
+
+            throw CustomError.internalServerError(`${error}`);
+
+        } finally {
+
+            await prisma.$disconnect();
+
+        }
 
     }
 
-    deleteUser = async() => {
+    //* ************************************************************* *//
+    //* **************** ELIMINADO LÓGICO DE USUARIO **************** *//
+    //* ************************************************************* *//
+    deleteUser = async( searchDto: SearchUserDto ): Promise<IUser | CustomError | null> => {
+
+        const { id } = searchDto;
+
+        try {
+
+            const getUserId = await prisma.uSER_USERS.findFirst({
+                where: { id }
+            });
+
+
+            if( !getUserId || getUserId == null ) 
+                return null;
+
+            const deleteLogicUser = await prisma.uSER_USERS.update({
+                where: { id },
+                data: {
+                    status: false
+                }
+            });
+
+            const { password, ...userEntity } = UserEntity.fromObject(getUserId);
+            return userEntity;
+            
+        } catch (error) {
+
+            throw CustomError.internalServerError("Error Interno del Servidor");
+
+        } finally {
+
+            await prisma.$disconnect();
+            
+        } 
 
     }
 
-    searchById = async() => {
+    //* ******************************************************* *//
+    //* **************** BUSCAR USUARIO POR ID **************** *//
+    //* ******************************************************* *//
+    searchById = async( searchDto: SearchUserDto ): Promise<IUser | CustomError | null> => {
+
+        const { id } = searchDto;
+
+        try {
+
+            const getUserId = await prisma.uSER_USERS.findFirst({
+                where: {
+                    AND: [
+                        { id },
+                        { status: true }
+                    ]
+                }
+            });
+
+
+            if( !getUserId || getUserId == null ) 
+                return null;
+
+            const { password, ...userEntity } = UserEntity.fromObject(getUserId);
+            return userEntity;
+            
+        } catch (error) {
+
+            throw CustomError.internalServerError("Error Interno del Servidor");
+
+        } finally {
+
+            await prisma.$disconnect();
+            
+        } 
 
     }
 
+    //* ************************************************************************* *//
+    //* **************** LISTAR USUARIOS CON FILTRO Y PAGINACIÓN **************** *//
+    //* ************************************************************************* *//
     list = async( paginationDto: PaginationDto ): Promise<IUserPaginated | CustomError> => {
 
         const { page, limit, search } = paginationDto;
@@ -126,6 +268,9 @@ export class UserService {
                             { phone: { contains: searchFilter, mode: 'insensitive' } },
                             { cellPhone: { contains: searchFilter, mode: 'insensitive' } },
                             { description: { contains: searchFilter, mode: 'insensitive' } },
+                        ],
+                        AND: [
+                            { status: true }
                         ]
                     },
                     select: {
@@ -156,6 +301,9 @@ export class UserService {
                             { phone: { contains: searchFilter, mode: 'insensitive' } },
                             { cellPhone: { contains: searchFilter, mode: 'insensitive' } },
                             { description: { contains: searchFilter, mode: 'insensitive' } },
+                        ],
+                        AND: [
+                            { status: true }
                         ]
                     }
                 });
@@ -165,6 +313,7 @@ export class UserService {
                 getUsers = await prisma.uSER_USERS.findMany({
                     take: limit,
                     skip: Number(page - 1) * limit,
+                    where: { status: true },
                     select: {
                         id: true,
                         typeDocument: true,
@@ -206,6 +355,9 @@ export class UserService {
 
     }
 
+    //* **************************************************************** *//
+    //* **************** VALIDACIÓN DE EMAIL REGISTRADO **************** *//
+    //* **************************************************************** *//
     validateEmailUser = async( token: string ) => {
 
         const jwtAdapter = new JwtAdapter();

@@ -8,6 +8,8 @@ import { RegisterUserDto } from '../../domain/dtos/users/register-user.dto';
 import { CustomError } from '../../domain/errors/custom.error';
 import { handleError } from '../../domain/errors/handler.error';
 import { PaginationDto } from '../../domain/common/pagination.dto';
+import { SearchUserDto } from '../../domain/dtos/users/search-user.dto';
+import { UpdateUserDto } from '../../domain/dtos/users/update-user.dto';
 
 
 export class UserController {
@@ -16,6 +18,9 @@ export class UserController {
         public readonly userService: UserService
     ){}
 
+    //* ************************************************************ *//
+    //* **************** REGISTRAR UN NUEVO USUARIO **************** *//
+    //* ************************************************************ *//
     registerUser = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
         
         const [error, registerDto] = RegisterUserDto.registerUser(req.body);
@@ -42,18 +47,112 @@ export class UserController {
         
     }
 
-    updateUser = async( req: Request, res: Response ) => {
-        res.json("Hola desde updateUser");
+    //* *************************************************************** *//
+    //* **************** ACTUALIZAR USUARIO REGISTRADO **************** *//
+    //* *************************************************************** *//
+    updateUser = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
+        
+        const [error, updateDto] = UpdateUserDto.updateUser(req.body);
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar registrar un usuario")
+            )
+            return;
+        }
+
+        this.userService.updateUser( updateDto! )
+            .then( (user) => {
+
+                if( user instanceof CustomError ){
+                    return res.status(user.statusCode).json(
+                        new ApiResponse({error: user.message}, EResponseCodes.FAIL, "Ocurrió un error al intentar actualizar un usuario"))
+                }
+
+                if( user == null )
+                    return res.status(404).json(
+                        new ApiResponse(null, EResponseCodes.FAIL, `No se encontró información con el ID ${updateDto!.id}`))
+
+                return res.status(200).json(new ApiResponse(user, EResponseCodes.OK, "Usuario Actualizado"));
+
+            }).catch( (error) => {
+                return handleError( error, res )
+            })
+        
     }
 
-    deleteUser = async( req: Request, res: Response ) => {
-        res.json("Hola desde deleteUser");
+    //* ************************************************************* *//
+    //* **************** ELIMINADO LÓGICO DE USUARIO **************** *//
+    //* ************************************************************* *//
+    deleteUser = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
+        
+        const { id } = req.params;
+
+        const [error, searchDto] = SearchUserDto.searchUser( Number(id) );
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar encontrar el ID")
+            )
+            return;
+        }
+
+        this.userService.deleteUser( searchDto! )
+            .then( (logicDeleteById) => {
+
+                if( logicDeleteById instanceof CustomError ) return handleError(logicDeleteById.message, res);
+                if( logicDeleteById == null )
+                    return res.status(404).json(
+                        new ApiResponse(null, EResponseCodes.FAIL, `No se encontró información con el ID ${id}`))
+
+                return res.status(200).json(
+                    new ApiResponse(logicDeleteById, EResponseCodes.OK, "Eliminación lógica de usuario por ID"))
+
+            })
+            .catch( error => handleError(error, res))
+
+        return;
+
+        
     }
 
-    searchById = async( req: Request, res: Response ) => {
-        res.json("Hola desde searchById");
+    //* ******************************************************* *//
+    //* **************** BUSCAR USUARIO POR ID **************** *//
+    //* ******************************************************* *//
+    searchById = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
+        
+        const { id } = req.params;
+
+        const [error, searchDto] = SearchUserDto.searchUser( Number(id) );
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar encontrar el ID")
+            )
+            return;
+        }
+
+        this.userService.searchById( searchDto! )
+            .then( (getById) => {
+
+                if( getById instanceof CustomError ) return handleError(getById.message, res);
+                if( getById == null )
+                    return res.status(404).json(
+                        new ApiResponse(null, EResponseCodes.FAIL, `No se encontró información con el ID ${id}`))
+
+                return res.status(200).json(
+                    new ApiResponse(getById, EResponseCodes.OK, "Obteniendo usuario por ID"))
+
+            })
+            .catch( error => handleError(error, res))
+
+        return;
+        
     }
 
+    //* ************************************************************************* *//
+    //* **************** LISTAR USUARIOS CON FILTRO Y PAGINACIÓN **************** *//
+    //* ************************************************************************* *//
     list = async( req: Request, res: Response ): Promise<ApiResponse<IUserPaginated> | undefined> => {
         
         const { page , limit , search = "" } = req.body;
@@ -80,6 +179,9 @@ export class UserController {
 
     }
 
+    //* **************************************************************** *//
+    //* **************** VALIDACIÓN DE EMAIL REGISTRADO **************** *//
+    //* **************************************************************** *//
     validateEmailUser = async( req: Request, res: Response ): Promise<ApiResponse<boolean> | any> => {
         
         const { token } = req.params; 
