@@ -128,6 +128,7 @@ export class UserController {
     searchById = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
         
         const { id } = req.params;
+        const { userValidated } = req.body; //La sesión del usuario
 
         const [error, searchDto] = SearchUserDto.searchUser( Number(id) );
 
@@ -138,16 +139,21 @@ export class UserController {
             return;
         }
 
-        this.userService.searchById( searchDto! )
+        this.userService.searchById( searchDto!, userValidated )
             .then( (getById) => {
 
                 if( getById instanceof CustomError ) return handleError(getById.message, res);
-                if( getById == null )
+
+                if( getById == "error1" )
                     return res.status(404).json(
-                        new ApiResponse(null, EResponseCodes.FAIL, `No se encontró información con el ID ${id}`))
+                        new ApiResponse(null, EResponseCodes.FAIL, `No se encontró información con el ID ${id}`));
+
+                if( getById == "error2" )
+                    return res.status(401).json(
+                        new ApiResponse(null, EResponseCodes.FAIL, `No tiene permisos para ver a un usuario diferente`));
 
                 return res.status(200).json(
-                    new ApiResponse(getById, EResponseCodes.OK, "Obteniendo usuario por ID"))
+                    new ApiResponse(getById, EResponseCodes.OK, "Obteniendo usuario por ID"));
 
             })
             .catch( error => handleError(error, res))
@@ -162,7 +168,8 @@ export class UserController {
     list = async( req: Request, res: Response ): Promise<ApiResponse<IUserPaginated> | undefined> => {
         
         const { page , limit , search = "" } = req.body;
-        const [error, paginationDto] = PaginationDto.pagination( Number(page), Number(limit), search.toString() ); 
+        const [error, paginationDto] = PaginationDto.pagination( Number(page), Number(limit), search.toString() );
+        const { userValidated } = req.body; //La sesión del usuario
 
         if( error ){
             res.status(400).json(
@@ -171,12 +178,16 @@ export class UserController {
             return;
         }
 
-        this.userService.list( paginationDto! )
+        this.userService.list( paginationDto!, userValidated )
             .then( (userResp) => {
+
+                if( userResp == null )
+                    return res.status(404).json(
+                        new ApiResponse(null, EResponseCodes.FAIL, `Usted no tiene permisos para acceder a esa función`));
 
                 if( userResp instanceof CustomError ) return handleError(userResp.message, res)
                 return res.status(200).json(
-                    new ApiResponse(userResp, EResponseCodes.OK, "Obteniendo usuarios"))
+                    new ApiResponse(userResp, EResponseCodes.OK, "Obteniendo usuarios"));
 
             })
             .catch( error => handleError(error, res))

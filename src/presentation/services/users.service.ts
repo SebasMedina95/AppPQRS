@@ -228,26 +228,40 @@ export class UserService {
     //* ******************************************************* *//
     //* **************** BUSCAR USUARIO POR ID **************** *//
     //* ******************************************************* *//
-    searchById = async( searchDto: SearchUserDto ): Promise<IUser | CustomError | null> => {
+    searchById = async( searchDto: SearchUserDto, user: IUser ): Promise<IUser | CustomError | string> => {
 
         const { id } = searchDto;
 
+        //Filtro de roles
+        if( !user ){
+            return CustomError.unAuthorizedError("No se ha identificado una sesión válida");
+        }
+
         try {
 
-            const getUserId = await prisma.uSER_USERS.findFirst({
+            const existUserId = await prisma.uSER_USERS.findFirst({
                 where: {
                     AND: [
-                        { id },
+                        { id: Number(searchDto.id) },
                         { status: true }
                     ]
                 }
             });
+    
+            if( existUserId == null ) return "error1";
+    
+            //Filtro para que solo pueda editar su propia información o el admin
+            if( user.roles.includes("USER")){
+                if( existUserId.id != user.id && !user.roles.includes("ADMIN") ){
+                    return "error2";
+                }
+            }else{
+                if( !user.roles.includes("ADMIN") ){
+                    return CustomError.badRequestError("No tiene permisos para realizar esta acción");
+                }
+            }
 
-
-            if( !getUserId || getUserId == null ) 
-                return null;
-
-            const { password, ...userEntity } = UserEntity.fromObject(getUserId);
+            const { password, ...userEntity } = UserEntity.fromObject(existUserId);
             return userEntity;
             
         } catch (error) {
@@ -265,12 +279,16 @@ export class UserService {
     //* ************************************************************************* *//
     //* **************** LISTAR USUARIOS CON FILTRO Y PAGINACIÓN **************** *//
     //* ************************************************************************* *//
-    list = async( paginationDto: PaginationDto ): Promise<IUserPaginated | CustomError> => {
+    list = async( paginationDto: PaginationDto, user: IUser ): Promise<IUserPaginated | CustomError | null> => {
 
         const { page, limit, search } = paginationDto;
         let getUsers: IUser[] = [];
         let getUsersCore: IUser[] = [];
         let countData: number;
+
+        if( !user.roles.includes("ADMIN") ){
+            return null;
+        }
 
         try {
 
