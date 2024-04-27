@@ -14,15 +14,15 @@ datasource db {
 }
 
 model USER_USERS {
-  id             Int      @id @default(autoincrement())
-  typeDocument   String   @db.VarChar(5)
-  document       String   @unique @db.VarChar(30)
-  fullName       String   @db.VarChar(150)
-  email          String   @unique @db.VarChar(150)
-  emailValidated Boolean  @default(false)
-  password       String   @db.VarChar(70)
-  role           String[] @default(["USER"])
-  status         Boolean  @default(true)
+  id             Int       @id @default(autoincrement())
+  typeDocument   String    @db.VarChar(5)
+  document       String    @unique @db.VarChar(30)
+  fullName       String    @db.VarChar(150)
+  email          String    @unique @db.VarChar(150)
+  emailValidated Boolean   @default(false)
+  password       String    @db.VarChar(70)
+  roles          String[]  @default(["USER"])
+  status         Boolean   @default(true)
   img            String?
   address        String?
   phone          String?

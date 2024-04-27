@@ -9,6 +9,7 @@ export class UserEntity {
         public readonly email: string,
         public readonly emailValidated: boolean,
         public readonly password: string,
+        public readonly roles: string[],
         public readonly img?: string,
         public readonly address?: string,
         public readonly phone?: string,
@@ -27,6 +28,7 @@ export class UserEntity {
             email,
             emailValidated,
             password, //No mostrar el password
+            roles,
             img,
             address,
             phone,
@@ -43,6 +45,7 @@ export class UserEntity {
             email,
             emailValidated,
             password, //No mostrar el password
+            roles,
             img,
             address,
             phone,

@@ -76,6 +76,7 @@ export class UserService {
                 fullName: userEntity.fullName,
                 email: userEntity.email,
                 emailValidated: userEntity.emailValidated,
+                roles: userEntity.roles,
                 img: userEntity.img,
                 address: userEntity.address,
                 phone: userEntity.phone,
@@ -100,10 +101,15 @@ export class UserService {
     //* *************************************************************** *//
     //* **************** ACTUALIZAR USUARIO REGISTRADO **************** *//
     //* *************************************************************** *//
-    updateUser = async( updateUserDto: UpdateUserDto ): Promise<IUser | CustomError | null> => {
+    updateUser = async( updateUserDto: UpdateUserDto, user: IUser ): Promise<IUser | CustomError | null> => {
 
         const idValid: number = updateUserDto.id;
         const documentValid: string = updateUserDto.document;
+
+        //Filtro de roles
+        if( !user ){
+            return CustomError.unAuthorizedError("No se ha identificado una sesión válida");
+        }
 
         const existUser = await prisma.uSER_USERS.findFirst({
             where: { document: documentValid }
@@ -120,6 +126,17 @@ export class UserService {
         });
 
         if( existUserId == null ) return null;
+
+        //Filtro para que solo pueda editar su propia información o el admin
+        if( user.roles.includes("USER")){
+            if( existUserId.id != user.id && !user.roles.includes("ADMIN") ){
+                return CustomError.badRequestError("No puede editar la información de un usuario diferente");
+            }
+        }else{
+            if( !user.roles.includes("ADMIN") ){
+                return CustomError.badRequestError("No tiene permisos para realizar esta acción");
+            }
+        }
 
         try {
 
@@ -145,6 +162,7 @@ export class UserService {
                 fullName: userEntity.fullName,
                 email: userEntity.email,
                 emailValidated: userEntity.emailValidated,
+                roles: userEntity.roles,
                 img: userEntity.img,
                 address: userEntity.address,
                 phone: userEntity.phone,
@@ -167,9 +185,13 @@ export class UserService {
     //* ************************************************************* *//
     //* **************** ELIMINADO LÓGICO DE USUARIO **************** *//
     //* ************************************************************* *//
-    deleteUser = async( searchDto: SearchUserDto ): Promise<IUser | CustomError | null> => {
+    deleteUser = async( searchDto: SearchUserDto, user: IUser ): Promise<IUser | CustomError | string> => {
 
         const { id } = searchDto;
+
+        if( !user.roles.includes("ADMIN") ){
+            return "error1";
+        }
 
         try {
 
@@ -179,7 +201,7 @@ export class UserService {
 
 
             if( !getUserId || getUserId == null ) 
-                return null;
+                return "error2";
 
             const deleteLogicUser = await prisma.uSER_USERS.update({
                 where: { id },
@@ -280,7 +302,7 @@ export class UserService {
                         fullName: true,
                         email: true,
                         emailValidated: true,
-                        role: true,
+                        roles: true,
                         status: true,
                         img: true,
                         address: true,
@@ -321,7 +343,7 @@ export class UserService {
                         fullName: true,
                         email: true,
                         emailValidated: true,
-                        role: true,
+                        roles: true,
                         status: true,
                         img: true,
                         address: true,

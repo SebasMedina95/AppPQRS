@@ -53,6 +53,7 @@ export class UserController {
     updateUser = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
         
         const [error, updateDto] = UpdateUserDto.updateUser(req.body);
+        const { userValidated } = req.body; //La sesión del usuario
 
         if( error ){
             res.status(400).json(
@@ -61,7 +62,7 @@ export class UserController {
             return;
         }
 
-        this.userService.updateUser( updateDto! )
+        this.userService.updateUser( updateDto!, userValidated )
             .then( (user) => {
 
                 if( user instanceof CustomError ){
@@ -87,6 +88,7 @@ export class UserController {
     deleteUser = async( req: Request, res: Response ): Promise<ApiResponse<IUser> | undefined> => {
         
         const { id } = req.params;
+        const { userValidated } = req.body; //La sesión del usuario
 
         const [error, searchDto] = SearchUserDto.searchUser( Number(id) );
 
@@ -97,13 +99,17 @@ export class UserController {
             return;
         }
 
-        this.userService.deleteUser( searchDto! )
+        this.userService.deleteUser( searchDto!, userValidated )
             .then( (logicDeleteById) => {
 
                 if( logicDeleteById instanceof CustomError ) return handleError(logicDeleteById.message, res);
-                if( logicDeleteById == null )
+                if( logicDeleteById == "error2" )
                     return res.status(404).json(
                         new ApiResponse(null, EResponseCodes.FAIL, `No se encontró información con el ID ${id}`))
+
+                if( logicDeleteById == "error1" )
+                    return res.status(401).json(
+                        new ApiResponse(null, EResponseCodes.FAIL, `Usted no se encuentra autorizado para realizar esta acción`))
 
                 return res.status(200).json(
                     new ApiResponse(logicDeleteById, EResponseCodes.OK, "Eliminación lógica de usuario por ID"))

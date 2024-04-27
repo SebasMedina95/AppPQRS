@@ -8,6 +8,7 @@ export interface IUser {
     email: string;
     emailValidated?: boolean;
     password?: string;
+    roles: string[];
     img?: string | null;
     address?: string | null;
     phone?: string | null;
@@ -25,6 +26,7 @@ export interface IUserNoToken {
     email: string;
     emailValidated?: boolean;
     password?: string;
+    roles: string[];
     img?: string | null;
     address?: string | null;
     phone?: string | null;
