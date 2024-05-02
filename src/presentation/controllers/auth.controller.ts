@@ -61,6 +61,7 @@ export class AuthController {
             return;
         }
 
+        // Cambiando password
         console.log({changePasswordUserDto});
 
     }
