@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import { LoginUserDto } from "../../domain/dtos/auth/login-user-dto";
+import { ChangePasswordUserDto } from '../../domain/dtos/auth/change-pass-dto';
 import { CustomError } from "../../domain/errors/custom.error";
 import { ApiResponse } from "../../domain/utils/api-response";
 
@@ -49,9 +50,18 @@ export class AuthController {
     //* ****************************************************** *//
     //* **************** CAMBIO DE CONTRASEÑA **************** *//
     //* ****************************************************** *//
-    changePassword = async(): Promise<ApiResponse<any> | undefined> => {
+    changePassword = async(req: Request, res: Response): Promise<ApiResponse<IUser> | undefined> => {
 
-        throw CustomError.notFoundError("Pendiente de Implementación")
+        const [error, changePasswordUserDto] = ChangePasswordUserDto.changePasswordUser(req.body);
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar logearse")
+            )
+            return;
+        }
+
+        console.log({changePasswordUserDto});
 
     }
 
@@ -67,9 +77,18 @@ export class AuthController {
     //* *********************************************************** *//
     //* **************** CAMBIO DE ROLES DE ACCESO **************** *//
     //* *********************************************************** *//
-    changeRoles = async(): Promise<ApiResponse<any> | undefined> => {
+    changeRoles = async(req: Request, res: Response): Promise<ApiResponse<IUser> | undefined> => {
 
-        throw CustomError.notFoundError("Pendiente de Implementación")
+        const [error, changePasswordUserDto] = ChangePasswordUserDto.changePasswordUser(req.body);
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar logearse")
+            )
+            return;
+        }
+
+        console.log({changePasswordUserDto});
 
     }
 
