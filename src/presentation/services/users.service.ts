@@ -134,7 +134,7 @@ export class UserService {
             }
         }else{
             if( !user.roles.includes("ADMIN") ){
-                return CustomError.badRequestError("No tiene permisos para realizar esta acción");
+                return CustomError.unAuthorizedError("No tiene permisos para realizar esta acción");
             }
         }
 

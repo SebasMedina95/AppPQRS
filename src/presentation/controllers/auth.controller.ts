@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { LoginUserDto } from "../../domain/dtos/auth/login-user-dto";
 import { ChangePasswordUserDto } from '../../domain/dtos/auth/change-pass-dto';
 import { CustomError } from "../../domain/errors/custom.error";
+import { ChangeRolesUserDto } from '../../domain/dtos/auth/change-roles.dto';
+import { RecoverPasswordUserDto } from '../../domain/dtos/auth/recover-pass.dto';
 import { ApiResponse } from "../../domain/utils/api-response";
 
 import { IUser } from "../../interfaces/users.interface";
@@ -53,25 +55,65 @@ export class AuthController {
     changePassword = async(req: Request, res: Response): Promise<ApiResponse<IUser> | undefined> => {
 
         const [error, changePasswordUserDto] = ChangePasswordUserDto.changePasswordUser(req.body);
+        const { userValidated } = req.body; //La sesión del usuario
 
         if( error ){
             res.status(400).json(
-                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar logearse")
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar cambiar la contraseña")
             )
             return;
         }
 
-        // Cambiando password
-        console.log({changePasswordUserDto});
+        this.authService.changePassword(changePasswordUserDto!, userValidated)
+            .then( (userChange) => {
+                if( userChange instanceof CustomError ){
+                    return res.status(userChange.statusCode).json(
+                        new ApiResponse({error: userChange.message}, EResponseCodes.FAIL, "Ocurrió un error al intentar cambiar la contraseña"))
+                }
+
+                return res.status(200).json(
+                    new ApiResponse(userChange, EResponseCodes.OK, "Actualización de Contraseña Exitosa"))
+            })
+            .catch( (error) => {
+                return res.status(400).json(
+                    new ApiResponse(error, EResponseCodes.FAIL, "Ocurrió un error al intentar Actualizar la Contraseña"))
+            })
 
     }
 
     //* ************************************************************ *//
     //* **************** RECUPERACIÓN DE CONTRASEÑA **************** *//
     //* ************************************************************ *//
-    recoverPassword = async(): Promise<ApiResponse<any> | undefined> => {
+    recoverPassword = async(req: Request, res: Response): Promise<ApiResponse<boolean> | undefined> => {
 
-        throw CustomError.notFoundError("Pendiente de Implementación")
+        const [error, recoverPasswordUserDto] = RecoverPasswordUserDto.recoverUser(req.body);
+
+        if( error ){
+            res.status(400).json(
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar recuperar la contraseña")
+            )
+            return;
+        }
+
+        this.authService.recoverPassword(recoverPasswordUserDto!)
+            .then( (recoverPassword) => {
+                if( recoverPassword instanceof CustomError ){
+                    return res.status(recoverPassword.statusCode).json(
+                        new ApiResponse({error: recoverPassword.message}, EResponseCodes.FAIL, "Ocurrió un error al intentar recuperar la contraseña"))
+                }
+
+                if( !recoverPassword ){
+                    return res.status(400).json(
+                        new ApiResponse(false, EResponseCodes.FAIL, "Error, no pudo ser hallado el email para la recuperación"))
+                }
+
+                return res.status(200).json(
+                    new ApiResponse(recoverPassword, EResponseCodes.OK, "Recuperación de Contraseña Exitosa - Revise Correo"))
+            })
+            .catch( (error) => {
+                return res.status(400).json(
+                    new ApiResponse(error, EResponseCodes.FAIL, "Ocurrió un error al intentar Recuperar la Contraseña"))
+            })
 
     }
 
@@ -80,16 +122,30 @@ export class AuthController {
     //* *********************************************************** *//
     changeRoles = async(req: Request, res: Response): Promise<ApiResponse<IUser> | undefined> => {
 
-        const [error, changePasswordUserDto] = ChangePasswordUserDto.changePasswordUser(req.body);
+        const [error, changeRolesUserDto] = ChangeRolesUserDto.changeRolesUser(req.body);
+        const { userValidated } = req.body; //La sesión del usuario
 
         if( error ){
             res.status(400).json(
-                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar logearse")
+                new ApiResponse({error}, EResponseCodes.FAIL, "Ocurrió un error al intentar actualizar los roles")
             )
             return;
         }
 
-        console.log({changePasswordUserDto});
+        this.authService.changeRoles(changeRolesUserDto!, userValidated)
+            .then( (userChange) => {
+                if( userChange instanceof CustomError ){
+                    return res.status(userChange.statusCode).json(
+                        new ApiResponse({error: userChange.message}, EResponseCodes.FAIL, "Ocurrió un error al intentar cambiar los Roles"))
+                }
+
+                return res.status(200).json(
+                    new ApiResponse(userChange, EResponseCodes.OK, "Actualización de Roles Exitosa"))
+            })
+            .catch( (error) => {
+                return res.status(400).json(
+                    new ApiResponse(error, EResponseCodes.FAIL, "Ocurrió un error al intentar Actualizar los Roles"))
+            })
 
     }
 

@@ -128,4 +128,60 @@ export class EmailService {
 
     }
 
+    async sendEmailWithRecover(email: string, generateAuxPassword: string) {
+
+        const html = `
+
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <title>Recuperación de Contraseña</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse;">
+                    <tr>
+                        <td align="center" bgcolor="#ffffff" style="padding: 40px 0;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/4305/4305535.png" alt="Email Icon" width="80" style="display: block;"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#ffffff" style="padding: 20px;">
+                            <h1 style="color: #333333; margin-top: 0;">Recuperación de Contraseña</h1>
+                            <p style="color: #666666;">
+                                Hemos actualizado la contraseña automáticamente al solicitar la recuperación, por tanto, 
+                                la contraseña con la que debe ingresar ahora se muestra a continuación:
+                                <h3 style="color: #FE2424; margin-top: 0;"> ${ generateAuxPassword } </h3>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#f4f4f4" style="padding: 20px; text-align: center;">
+                            <p style="color: #666666; margin: 0;">
+                                Este correo electrónico fue enviado desde la aplicación de PQRS.
+                                Recuperación de contraseña para el correo electrónico: ${ email }
+                                <b>Si se trata de un error por favor ignore este correo</b>
+                            </p>
+
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+
+        `;
+
+        const options = {
+            to: email,
+            subject: "Recuperación de Contraseña",
+            htmlBody: html
+        }
+
+        const isSent = await this.sendEmail( options );
+        if( !isSent ) throw CustomError.internalServerError("No pudo ser enviado el email de recuperación de contraseña");
+
+        return true;
+
+    }
+
 }

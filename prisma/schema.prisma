@@ -13,20 +13,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RequestType {
+  Solicitud
+  Reconocimiento
+  Queja
+  Sugerencia
+}
+
+enum Status {
+  Activa
+  Anulada
+  Procesando
+  Escalado
+  Finalizada
+}
+
 model USER_USERS {
-  id             Int       @id @default(autoincrement())
-  typeDocument   String    @db.VarChar(5)
-  document       String    @unique @db.VarChar(30)
-  fullName       String    @db.VarChar(150)
-  email          String    @unique @db.VarChar(150)
-  emailValidated Boolean   @default(false)
-  password       String    @db.VarChar(70)
-  roles          String[]  @default(["USER"])
-  status         Boolean   @default(true)
+  id             Int         @id @default(autoincrement())
+  typeDocument   String      @db.VarChar(5)
+  document       String      @unique @db.VarChar(30)
+  fullName       String      @db.VarChar(150)
+  email          String      @unique @db.VarChar(150)
+  emailValidated Boolean     @default(false)
+  password       String      @db.VarChar(70)
+  roles          String[]    @default(["USER"])
+  status         Boolean     @default(true)
   img            String?
   address        String?
   phone          String?
   cellPhone      String?
   description    String?
   createDateAt   DateTime?
+  PQRS_PQRS      PQRS_PQRS[]
+  SEGU_PQRS      SEGU_PQRS[]
+}
+
+model PQRS_PQRS {
+  id               Int         @id @default(autoincrement())
+  radicated        String      @db.VarChar(50)
+  requestTypeId    RequestType
+  description      String      @db.VarChar(500)
+  status           Status
+  scalingOther     Boolean     @default(false)
+  scalingRadicated String?     @db.VarChar(50)
+  createDateAt     DateTime?
+
+  user      USER_USERS  @relation(fields: [userId], references: [id])
+  userId    Int
+  SEGU_PQRS SEGU_PQRS[]
+}
+
+model SEGU_PQRS {
+  id           Int       @id @default(autoincrement())
+  status       Status
+  response     String    @db.VarChar(500)
+  createDateAt DateTime?
+
+  employee   USER_USERS @relation(fields: [employeeId], references: [id])
+  employeeId Int
+  pqrs       PQRS_PQRS  @relation(fields: [pqrsId], references: [id])
+  pqrsId     Int
 }

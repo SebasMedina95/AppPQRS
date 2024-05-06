@@ -21,7 +21,7 @@ export class ChangePasswordUserDto {
 
         //Contraseña Actual
         if( !currentPassword ) return [`Password es requerido`];
-        if( !regularExps.password.test(currentPassword) ) return [`Password debe tener al menos 6 caracteres, contener una mayúscula, una minúscula y un caracter esopecial [!@#$%^&*._]`];
+        //if( !regularExps.password.test(currentPassword) ) return [`Password debe tener al menos 6 caracteres, contener una mayúscula, una minúscula y un caracter esopecial [!@#$%^&*._]`];
 
         //Contraseña Nueva
         if( !newPassword ) return [`Nuevo Password es requerido`];
