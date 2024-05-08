@@ -35,6 +35,10 @@ Para comenzar a trabajar, por favor siga los siguientes pasos para las instalaci
    npm run dev
    ```
 8. Puede ver la URL principal ejecutando: ``http://localhost:4695/``
+9. Para llenar la base de datos con información inical, ejecute el comando:
+   ```
+   npm run seed 
+   ```
 
 ## Consideraciones de trabajo:
 - Creación y ejecución de migraciones para la base de datos:

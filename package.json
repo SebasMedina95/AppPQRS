@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsnd --respawn src/start/app.ts",
     "start": "npm run build && node dist/start/app.js",
-    "build": "rimraf ./dist && tsc"
+    "build": "rimraf ./dist && tsc",
+    "seed": "ts-node-dev ./src/db/seed/seed.ts"
   },
   "keywords": [
     "PQRS"
