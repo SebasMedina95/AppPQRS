@@ -28,6 +28,7 @@ export class UserRoutes {
         router.patch('/delete/:id', [ AuthMiddleware.ValidateJwt ], userController.deleteUser );
         router.get('/search/:id', [ AuthMiddleware.ValidateJwt ], userController.searchById );
         router.get('/list', [ AuthMiddleware.ValidateJwt ], userController.list );
+        router.post('/update-image/:id', [ AuthMiddleware.ValidateJwt ], userController.updateImageUser );
 
         return router;
 

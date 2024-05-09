@@ -35,7 +35,7 @@ Para comenzar a trabajar, por favor siga los siguientes pasos para las instalaci
    npm run dev
    ```
 8. Puede ver la URL principal ejecutando: ``http://localhost:4695/``
-9. Para llenar la base de datos con información inical, ejecute el comando:
+9. Para llenar la base de datos con información inicial, ejecute el comando:
    ```
    npm run seed 
    ```
@@ -55,9 +55,12 @@ Para comenzar a trabajar, por favor siga los siguientes pasos para las instalaci
     ```
   - Visualización de documentación Swagger:
     ```
-    //Comando//
+    //Comando// :::Pendiente:::
     ```
 
 ## Definición básica de lógica de negocio:
-- Implementación
+- ``Autenticación y Autorización``:
+  - Se genera un sistema de login de usuario en paralelo a la administración misma de usuarios en el sistema si se trata de tu propio usuario, o bien, si es el administrador quien realiza esta gestión, por ende, se tiene una gestión completa para este tema en específico (dejando por fuera la gestión de roles porque está es independiente). Al crear un usuario, se envía un correo de validación para el tema, por lo que el correo además de existir, las variables de entorno deben tener la variable de envío activa para el tema, lo mismo para el tema de recuperación de la contraseña, esto permitirá manejar un sistema de envío de emails para la gestión de la aplicación.
+- ``Sistema de PQRS``:
+  - El manejo de PQRS comprenderá un sistema bastante simple pero cuya funcionalidad es contener la administración de las mismas por cada usuario, pero considerando en todo momento que habrá un "empleado" que gestionará la PQRS y le hará un seguimiento respecto al tema. El usuario logeado al sistema podrá consultar sus PQRS dado el usuario logeado y correctamente verificado. El objetivo será que depende de la PQRS un administrador podría comprender otro segmento sistémico si se requiere una administración de fondos presupuestales, pero esto implicará un módulo a posterirí, pero en el momento tendremos esta estructura
   

@@ -19,4 +19,9 @@ export const envs = {
 
   WEB_SERVICE_URL: get('WEB_SERVICE_URL').required().asString(),
 
+  CLOUDINARY_URL: get('CLOUDINARY_URL').required().asString(),
+  CLOUDINARY_APINAME: get('CLOUDINARY_APINAME').required().asString(),
+  CLOUDINARY_APIKEY: get('CLOUDINARY_APIKEY').required().asString(),
+  CLOUDINARY_APISECRET: get('CLOUDINARY_APISECRET').required().asString(),
+
 }

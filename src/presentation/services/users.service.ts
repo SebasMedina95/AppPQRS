@@ -424,4 +424,14 @@ export class UserService {
 
     }
 
+    //* *************************************************************** *//
+    //* **************** ACTUALIZAR IMAGEN DEL USUARIO **************** *//
+    //* *************************************************************** *//
+    updateImageUser = async( req: Request, res: Response ): Promise<boolean | CustomError | null> => {
+        
+
+        return null;
+
+    }
+
 }

@@ -215,4 +215,13 @@ export class UserController {
         
     }
 
+    //* *************************************************************** *//
+    //* **************** ACTUALIZAR IMAGEN DEL USUARIO **************** *//
+    //* *************************************************************** *//
+    updateImageUser = async( req: Request, res: Response ): Promise<ApiResponse<boolean> | any> => {
+
+        console.log("Hola en el controlador")
+
+    }
+
 }

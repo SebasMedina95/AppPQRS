@@ -1,7 +1,7 @@
 {
   "name": "app-pqrs",
   "version": "1.0.0",
-  "description": "Aplicación de atención de PQRS - APÍRESTful",
+  "description": "Aplicación de atención de PQRS - APIRESTful",
   "main": "index.js",
   "scripts": {
     "dev": "tsnd --respawn src/start/app.ts",
@@ -21,6 +21,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.7",
     "@types/nodemailer": "^6.4.14",
+    "@types/uuid": "^9.0.8",
     "nodemon": "^3.1.0",
     "prisma": "^5.12.1",
     "rimraf": "^5.0.5",
@@ -31,12 +32,14 @@
   "dependencies": {
     "@prisma/client": "^5.12.1",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.2.0",
     "dotenv": "^16.4.5",
     "env-var": "^7.4.1",
     "express": "^4.19.2",
     "express-fileupload": "^1.5.0",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.45",
-    "nodemailer": "^6.9.13"
+    "nodemailer": "^6.9.13",
+    "uuid": "^9.0.1"
   }
 }
